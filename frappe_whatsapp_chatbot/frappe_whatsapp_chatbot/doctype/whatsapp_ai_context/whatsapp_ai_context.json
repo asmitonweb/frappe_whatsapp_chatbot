@@ -12,12 +12,17 @@
         "priority",
         "column_break_basic",
         "context_type",
+        "trigger_keywords",
         "section_break_static",
         "static_content",
         "section_break_doctype",
         "query_doctype",
         "fields_to_include",
-        "filters"
+        "filters",
+        "max_results",
+        "column_break_user_filter",
+        "user_specific",
+        "phone_field"
     ],
     "fields": [
         {
@@ -55,6 +60,12 @@
             "label": "Context Type",
             "options": "Static Text\nDocType Query",
             "reqd": 1
+        },
+        {
+            "fieldname": "trigger_keywords",
+            "fieldtype": "Small Text",
+            "label": "Trigger Keywords",
+            "description": "Comma-separated keywords. Context is only included if message contains any of these. Leave empty to always include."
         },
         {
             "fieldname": "section_break_static",
@@ -95,6 +106,33 @@
             "label": "Filters",
             "depends_on": "eval:doc.context_type=='DocType Query'",
             "description": "JSON filters for the query (e.g., {\"enabled\": 1})"
+        },
+        {
+            "fieldname": "max_results",
+            "fieldtype": "Int",
+            "label": "Max Results",
+            "default": "10",
+            "depends_on": "eval:doc.context_type=='DocType Query'",
+            "description": "Maximum number of records to fetch (default: 10)"
+        },
+        {
+            "fieldname": "column_break_user_filter",
+            "fieldtype": "Column Break",
+            "depends_on": "eval:doc.context_type=='DocType Query'"
+        },
+        {
+            "fieldname": "user_specific",
+            "fieldtype": "Check",
+            "label": "User Specific Data",
+            "depends_on": "eval:doc.context_type=='DocType Query'",
+            "description": "Filter results by user's phone number"
+        },
+        {
+            "fieldname": "phone_field",
+            "fieldtype": "Data",
+            "label": "Phone Field",
+            "depends_on": "eval:doc.context_type=='DocType Query' && doc.user_specific",
+            "description": "Field name containing phone number (e.g., mobile_no, phone, contact_phone)"
         }
     ],
     "index_web_pages_for_search": 1,

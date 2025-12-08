@@ -5,8 +5,9 @@ import json
 class AIResponder:
     """Generate AI-powered responses (optional feature)."""
 
-    def __init__(self, settings):
+    def __init__(self, settings, phone_number=None):
         self.settings = settings
+        self.phone_number = phone_number
         self.provider = settings.ai_provider
         self.api_key = settings.get_password("ai_api_key") if settings.ai_api_key else None
         self.model = settings.ai_model or "gpt-4o-mini"
@@ -19,6 +20,8 @@ class AIResponder:
         if not self.api_key:
             frappe.log_error("AI API key not configured")
             return None
+
+        self.current_message = message  # Store for context filtering
 
         try:
             if self.provider == "OpenAI":
@@ -43,14 +46,22 @@ class AIResponder:
             )
 
             context_parts = []
+            message_lower = (getattr(self, 'current_message', '') or '').lower()
+
             for ctx in contexts:
                 try:
+                    # Check trigger keywords - skip if message doesn't match
+                    if ctx.trigger_keywords:
+                        keywords = [k.strip().lower() for k in ctx.trigger_keywords.split(",") if k.strip()]
+                        if keywords and not any(kw in message_lower for kw in keywords):
+                            continue  # Skip this context - no matching keywords
+
                     if ctx.context_type == "Static Text" and ctx.static_content:
-                        context_parts.append(ctx.static_content)
+                        context_parts.append(f"[{ctx.title}]\n{ctx.static_content}")
                     elif ctx.context_type == "DocType Query":
                         data = self.query_doctype(ctx)
                         if data:
-                            context_parts.append(json.dumps(data, indent=2, default=str))
+                            context_parts.append(f"[{ctx.title}]\n{json.dumps(data, indent=2, default=str)}")
                 except Exception as e:
                     frappe.log_error(f"AIResponder context '{ctx.title}' error: {str(e)}")
                     continue
@@ -73,20 +84,51 @@ class AIResponder:
             filters = ctx.filters or {}
             if isinstance(filters, str):
                 filters = json.loads(filters) if filters else {}
+
+            # Add user-specific filter if enabled
+            if ctx.user_specific and ctx.phone_field and self.phone_number:
+                # Normalize phone number for matching (remove + and spaces)
+                phone_variants = self.get_phone_variants(self.phone_number)
+                filters[ctx.phone_field] = ["in", phone_variants]
+
             fields = ["name"]
 
             if ctx.fields_to_include:
                 fields = [f.strip() for f in ctx.fields_to_include.split(",") if f.strip()]
 
+            limit = ctx.max_results or 10
+
             return frappe.get_all(
                 target_doctype,
                 filters=filters,
                 fields=fields,
-                limit=50
+                limit=limit
             )
         except Exception as e:
             frappe.log_error(f"AIResponder query_doctype error: {str(e)}")
             return None
+
+    def get_phone_variants(self, phone):
+        """Get different variants of phone number for matching."""
+        if not phone:
+            return []
+
+        # Clean the phone number
+        clean = phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+
+        variants = [phone, clean]
+
+        # With/without + prefix
+        if clean.startswith("+"):
+            variants.append(clean[1:])
+        else:
+            variants.append("+" + clean)
+
+        # With/without country code (assuming 10 digit local numbers)
+        if len(clean) > 10:
+            variants.append(clean[-10:])
+
+        return list(set(variants))
 
     def openai_response(self, message, conversation_history):
         """Generate response using OpenAI."""
