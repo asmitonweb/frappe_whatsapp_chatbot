@@ -39,6 +39,8 @@ pip install google-generativeai
 | **AI Model** | Model to use | gpt-4o-mini |
 | **Max Tokens** | Maximum response length | 500 |
 | **Temperature** | Creativity (0-1) | 0.7 |
+| **Include Conversation History** | Include recent messages for context | Off |
+| **History Messages** | Number of recent messages to include | 4 |
 | **System Prompt** | Instructions for the AI | Default assistant prompt |
 
 ### Recommended Models
@@ -152,6 +154,15 @@ Higher priority contexts are included first. Use this to ensure important inform
 - API costs apply based on your provider
 - Response time depends on the AI provider
 - No guarantee of consistent responses
+
+## Token Optimization
+
+To reduce API costs and avoid token limits:
+
+1. **Disable conversation history** - Only enable if context is essential
+2. **Use trigger keywords in AI Context** - Context with keywords only loads when relevant
+3. **Limit history messages** - Keep to 4 or fewer messages
+4. **Keep context concise** - DocType queries use compact JSON automatically
 
 ## Best Practices
 

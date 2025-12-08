@@ -14,6 +14,8 @@ class AIResponder:
         self.system_prompt = settings.ai_system_prompt or "You are a helpful assistant."
         self.max_tokens = settings.ai_max_tokens or 500
         self.temperature = settings.ai_temperature or 0.7
+        self.include_history = settings.ai_include_history or False
+        self.history_limit = settings.ai_history_limit or 4
 
     def generate_response(self, message, conversation_history=None):
         """Generate AI response for message."""
@@ -63,7 +65,8 @@ class AIResponder:
                     elif ctx.context_type == "DocType Query":
                         data = self.query_doctype(ctx)
                         if data:
-                            context_parts.append(f"[{ctx.title}]\n{json.dumps(data, indent=2, default=str)}")
+                            # Compact JSON to save tokens
+                            context_parts.append(f"[{ctx.title}]\n{json.dumps(data, separators=(',', ':'), default=str)}")
                 except Exception as e:
                     frappe.log_error(f"AIResponder context '{ctx.title}' error: {str(e)}")
                     continue
@@ -148,11 +151,13 @@ class AIResponder:
                     "content": f"Here is relevant information you can use to answer questions:\n{context}"
                 })
 
-            # Add conversation history (last 10 messages)
-            if conversation_history:
-                for msg in conversation_history[-10:]:
+            # Add conversation history if enabled
+            if self.include_history and conversation_history:
+                for msg in conversation_history[-self.history_limit:]:
                     role = "user" if msg["direction"] == "Incoming" else "assistant"
-                    messages.append({"role": role, "content": msg["message"]})
+                    # Truncate long messages
+                    msg_text = msg["message"][:200] if len(msg["message"]) > 200 else msg["message"]
+                    messages.append({"role": role, "content": msg_text})
 
             # Add current message
             messages.append({"role": "user", "content": message})
@@ -182,10 +187,13 @@ class AIResponder:
             # Build messages
             messages = []
 
-            if conversation_history:
-                for msg in conversation_history[-10:]:
+            # Add conversation history if enabled
+            if self.include_history and conversation_history:
+                for msg in conversation_history[-self.history_limit:]:
                     role = "user" if msg["direction"] == "Incoming" else "assistant"
-                    messages.append({"role": role, "content": msg["message"]})
+                    # Truncate long messages
+                    msg_text = msg["message"][:200] if len(msg["message"]) > 200 else msg["message"]
+                    messages.append({"role": role, "content": msg_text})
 
             messages.append({"role": "user", "content": message})
 
@@ -222,18 +230,20 @@ class AIResponder:
                 system_instruction=self.system_prompt
             )
 
-            # Build conversation history
+            # Build conversation history if enabled
             history = []
-            if conversation_history:
-                for msg in conversation_history[-10:]:
+            if self.include_history and conversation_history:
+                for msg in conversation_history[-self.history_limit:]:
                     role = "user" if msg["direction"] == "Incoming" else "model"
-                    history.append({"role": role, "parts": [msg["message"]]})
+                    # Truncate long messages to save tokens
+                    msg_text = msg["message"][:200] if len(msg["message"]) > 200 else msg["message"]
+                    history.append({"role": role, "parts": [msg_text]})
 
             # Add context to the message
             context = self.build_context()
             full_message = message
             if context:
-                full_message = f"Context information:\n{context}\n\nUser message: {message}"
+                full_message = f"Context:\n{context}\n\nQuestion: {message}"
 
             chat = model.start_chat(history=history)
             response = chat.send_message(
@@ -244,7 +254,20 @@ class AIResponder:
                 )
             )
 
-            return response.text
+            # Handle empty response
+            if response.candidates and response.candidates[0].content.parts:
+                return response.text
+            else:
+                # Retry without history if MAX_TOKENS
+                chat = model.start_chat(history=[])
+                response = chat.send_message(
+                    full_message,
+                    generation_config=genai.types.GenerationConfig(
+                        max_output_tokens=self.max_tokens,
+                        temperature=self.temperature
+                    )
+                )
+                return response.text
 
         except ImportError:
             frappe.log_error("Google AI library not installed. Run: pip install google-generativeai")

@@ -26,6 +26,8 @@
         "ai_model",
         "ai_max_tokens",
         "ai_temperature",
+        "ai_include_history",
+        "ai_history_limit",
         "ai_system_prompt",
         "section_break_session",
         "session_timeout_minutes",
@@ -163,11 +165,27 @@
             "description": "0 = deterministic, 1 = creative"
         },
         {
+            "fieldname": "ai_include_history",
+            "fieldtype": "Check",
+            "label": "Include Conversation History",
+            "default": 0,
+            "depends_on": "eval:doc.enable_ai",
+            "description": "Include recent messages for context (uses more tokens)"
+        },
+        {
+            "fieldname": "ai_history_limit",
+            "fieldtype": "Int",
+            "label": "History Messages",
+            "default": 4,
+            "depends_on": "eval:doc.enable_ai && doc.ai_include_history",
+            "description": "Number of recent messages to include (default: 4)"
+        },
+        {
             "fieldname": "ai_system_prompt",
             "fieldtype": "Text",
             "label": "AI System Prompt",
             "depends_on": "eval:doc.enable_ai",
-            "default": "You are a helpful customer service assistant. Be concise, friendly, and professional. If you don't know something, say so and offer to connect the user with a human agent."
+            "default": "You are a helpful customer service assistant. Be concise, friendly, and professional.\n\nRULES:\n- Use your knowledge to answer questions\n- You CANNOT perform any actions (no sending emails, resetting passwords, creating records, etc.)\n- If asked to DO something, guide the user on how to do it themselves\n- Never claim to have done something you didn't do\n- If you don't know something, say so and offer to connect with a human agent"
         },
         {
             "fieldname": "section_break_session",
