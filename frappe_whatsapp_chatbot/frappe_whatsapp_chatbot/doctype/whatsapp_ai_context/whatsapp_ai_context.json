@@ -15,7 +15,7 @@
         "section_break_static",
         "static_content",
         "section_break_doctype",
-        "doctype",
+        "query_doctype",
         "fields_to_include",
         "filters"
     ],
@@ -76,7 +76,7 @@
             "depends_on": "eval:doc.context_type=='DocType Query'"
         },
         {
-            "fieldname": "doctype",
+            "fieldname": "query_doctype",
             "fieldtype": "Link",
             "label": "DocType",
             "options": "DocType",

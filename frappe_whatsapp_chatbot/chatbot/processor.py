@@ -133,15 +133,20 @@ class ChatbotProcessor:
 
         # 4. AI Fallback (if enabled)
         if settings.enable_ai:
-            from frappe_whatsapp_chatbot.chatbot.ai_responder import AIResponder
-            ai_responder = AIResponder(settings)
-            response = ai_responder.generate_response(
-                self.message_text,
-                session_mgr.get_conversation_history()
-            )
-            if response:
-                self.send_response(response)
-                return
+            try:
+                from frappe_whatsapp_chatbot.chatbot.ai_responder import AIResponder
+                ai_responder = AIResponder(settings)
+                response = ai_responder.generate_response(
+                    self.message_text,
+                    session_mgr.get_conversation_history()
+                )
+                if response:
+                    self.send_response(response)
+                    return
+            except Exception as e:
+                frappe.log_error(f"AI Fallback error: {str(e)}")
+                # Rollback any failed transaction
+                frappe.db.rollback()
 
         # 5. Default response
         if settings.default_response:

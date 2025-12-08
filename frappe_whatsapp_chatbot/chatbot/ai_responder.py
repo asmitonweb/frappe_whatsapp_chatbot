@@ -44,12 +44,16 @@ class AIResponder:
 
             context_parts = []
             for ctx in contexts:
-                if ctx.context_type == "Static Text" and ctx.static_content:
-                    context_parts.append(ctx.static_content)
-                elif ctx.context_type == "DocType Query":
-                    data = self.query_doctype(ctx)
-                    if data:
-                        context_parts.append(json.dumps(data, indent=2, default=str))
+                try:
+                    if ctx.context_type == "Static Text" and ctx.static_content:
+                        context_parts.append(ctx.static_content)
+                    elif ctx.context_type == "DocType Query":
+                        data = self.query_doctype(ctx)
+                        if data:
+                            context_parts.append(json.dumps(data, indent=2, default=str))
+                except Exception as e:
+                    frappe.log_error(f"AIResponder context '{ctx.title}' error: {str(e)}")
+                    continue
 
             return "\n\n".join(context_parts) if context_parts else ""
 
@@ -60,6 +64,11 @@ class AIResponder:
     def query_doctype(self, ctx):
         """Query DocType for context."""
         try:
+            # Get the target DocType to query (field renamed to avoid conflict with Frappe's doctype attribute)
+            target_doctype = ctx.query_doctype
+            if not target_doctype:
+                return None
+
             # Handle filters that might already be parsed
             filters = ctx.filters or {}
             if isinstance(filters, str):
@@ -70,7 +79,7 @@ class AIResponder:
                 fields = [f.strip() for f in ctx.fields_to_include.split(",") if f.strip()]
 
             return frappe.get_all(
-                ctx.doctype,
+                target_doctype,
                 filters=filters,
                 fields=fields,
                 limit=50
