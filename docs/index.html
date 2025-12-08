@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Frappe WhatsApp Chatbot</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="WhatsApp Chatbot for Frappe with keyword replies, conversation flows, and optional AI">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <style>
+    :root {
+      --theme-color: #25D366;
+      --theme-color-dark: #128C7E;
+    }
+    .sidebar-nav > ul > li > a {
+      font-weight: bold;
+    }
+    .markdown-section code {
+      border-radius: 4px;
+    }
+    .app-name-link img {
+      max-width: 40px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      name: 'Frappe WhatsApp Chatbot',
+      repo: 'https://github.com/shridarpatil/frappe_whatsapp_chatbot',
+      loadSidebar: true,
+      subMaxLevel: 3,
+      search: {
+        placeholder: 'Search documentation...',
+        noData: 'No results found',
+        depth: 3
+      },
+      copyCode: {
+        buttonText: 'Copy',
+        successText: 'Copied!'
+      },
+      pagination: {
+        previousText: 'Previous',
+        nextText: 'Next',
+        crossChapter: true
+      },
+      auto2top: true,
+      themeColor: '#25D366'
+    }
+  </script>
+  <!-- Docsify -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <!-- Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination@2/dist/docsify-pagination.min.js"></script>
+  <!-- Syntax highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+</body>
+</html>
