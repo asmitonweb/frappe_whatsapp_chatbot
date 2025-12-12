@@ -138,6 +138,48 @@ Filters: {"disabled": 0, "is_sales_item": 1}
 
 Higher priority contexts are included first. Use this to ensure important information is always included.
 
+### Trigger Keywords
+
+Load context only when the user's message contains specific keywords. This reduces token usage and keeps responses focused.
+
+1. Go to **WhatsApp AI Context** → Edit
+2. Add keywords to **Trigger Keywords** field (comma-separated)
+3. Context is only included when message contains any of these words
+
+Example:
+```
+Title: Refund Policy
+Context Type: Static Text
+Trigger Keywords: refund, return, money back, cancel
+Static Content:
+Our refund policy:
+- Full refund within 30 days of purchase
+- Partial refund (50%) within 60 days
+- No refunds after 60 days
+- Contact support@example.com to request
+```
+
+This context only loads when user mentions "refund", "return", etc.
+
+### User-Specific Context
+
+For DocType queries, you can filter by the user's phone number:
+
+1. Enable **User Specific** checkbox
+2. Set **Phone Number Field** to the field containing phone numbers
+
+Example:
+```
+Title: User Orders
+Context Type: DocType Query
+DocType: Sales Order
+Fields to Include: name, status, grand_total, transaction_date
+User Specific: Yes
+Phone Number Field: contact_mobile
+```
+
+This includes only the current user's orders in the AI context.
+
 ## How It Works
 
 1. User sends a message

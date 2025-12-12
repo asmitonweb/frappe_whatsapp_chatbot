@@ -215,8 +215,94 @@ print(json.loads(session.session_data))
 
 ---
 
+## Error Reference
+
+### Common Error Messages
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `WhatsApp Chatbot Error` | General processing error | Check Error Log for stack trace |
+| `WhatsApp Chatbot Script Error` | Server Script execution failed | Review script syntax and variables |
+| `App X is not installed` | Script name doesn't exist | Use Server Script name, not api_method |
+| `Account Name is required` | Missing WhatsApp Account config | Configure WhatsApp Account properly |
+| `Failed to send message` | WhatsApp API error | Check token validity, phone format |
+| `AI Fallback error` | AI provider API failed | Check API key and model name |
+| `FlowEngine error` | Flow processing failed | Check flow configuration and steps |
+
+### Error Log Categories
+
+Filter Error Log by these titles:
+
+| Title | Component |
+|-------|-----------|
+| `WhatsApp Chatbot Error` | Main processor |
+| `WhatsApp Chatbot Script Error` | Script execution |
+| `WhatsApp Flow Error` | Flow engine |
+| `AI Fallback error` | AI responder |
+| `cleanup_expired_sessions error` | Session cleanup |
+
+### Interpreting Stack Traces
+
+Common patterns in stack traces:
+
+**Missing variable:**
+```
+KeyError: 'order_id'
+```
+→ Variable not collected or wrong name in mapping
+
+**Invalid document:**
+```
+frappe.DoesNotExistError: DocType Customer with name CUST-001 does not exist
+```
+→ Referenced document doesn't exist
+
+**Permission error:**
+```
+frappe.PermissionError
+```
+→ Check doctype permissions or use `ignore_permissions=True`
+
+**Validation error:**
+```
+frappe.ValidationError: Mobile No is required
+```
+→ Required field missing in document creation
+
+---
+
+## Performance Issues
+
+### Slow Responses
+
+**Check:**
+1. AI response time (3-10s is normal)
+2. Database query performance
+3. External API call timeouts
+
+**Solutions:**
+- Reduce conversation history length
+- Optimize DocType query filters
+- Increase worker count
+
+### Messages Piling Up
+
+**Check:**
+1. Worker status: `bench doctor`
+2. Redis connection: `redis-cli ping`
+3. Queue length: `bench show-pending-jobs`
+
+**Solutions:**
+- Restart workers: `bench restart`
+- Add more workers
+- Check for blocking operations in scripts
+
+---
+
 ## Getting Help
 
 1. Check this documentation
 2. Search Error Log for specific errors
-3. Open an issue on GitHub: https://github.com/shridarpatil/frappe_whatsapp_chatbot/issues
+3. Review [Security Guide](security.md) for script issues
+4. Check [Production Guide](../deployment.md) for deployment issues
+5. Open an issue on GitHub: https://github.com/shridarpatil/frappe_whatsapp_chatbot/issues

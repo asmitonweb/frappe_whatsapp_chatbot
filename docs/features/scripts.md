@@ -151,6 +151,70 @@ except Exception as e:
     response = "An error occurred. Please try again."
 ```
 
+## Keyword Reply Scripts
+
+When using Script response type in Keyword Replies, different variables are available:
+
+| Variable | Description |
+|----------|-------------|
+| `doc` | The WhatsApp Message document |
+| `phone_number` | User's WhatsApp phone number |
+| `message` | The message text received |
+| `account` | WhatsApp Account name |
+| `response` | **Set this** with the message to send |
+
+### Keyword Reply Script Example
+
+```python
+# Check if user is a registered customer
+customer = frappe.db.get_value(
+    'Customer',
+    {'mobile_no': phone_number},
+    'customer_name'
+)
+
+if customer:
+    response = f"Welcome back, {customer}! How can I help you today?"
+else:
+    response = "Hello! I don't recognize this number. Would you like to register?"
+```
+
+### Using frappe.response
+
+You can also use the standard Frappe API pattern:
+
+```python
+frappe.response['message'] = "This also works!"
+```
+
+## Security Considerations
+
+> **Important**: Review the [Security Best Practices](../reference/security.md) guide before writing scripts.
+
+### Safe Practices
+
+```python
+# Use Frappe ORM for database queries (SQL injection safe)
+frappe.get_all("Customer", filters={"mobile_no": phone_number})
+
+# Validate user input
+if not data.get('order_id', '').startswith('SO-'):
+    response = "Invalid order ID format"
+```
+
+### Avoid These
+
+```python
+# Never use string formatting in SQL
+frappe.db.sql(f"SELECT * FROM tabCustomer WHERE mobile = '{phone_number}'")  # DANGEROUS!
+
+# Never eval user input
+eval(message)  # DANGEROUS!
+
+# Never expose sensitive data
+response = str(frappe.get_doc("User", "Administrator").as_dict())  # DANGEROUS!
+```
+
 ## Tips
 
 1. **Always set `response`** - If you don't set it, the Message field will be used as fallback
@@ -158,6 +222,7 @@ except Exception as e:
 3. **Use logging** - Use `frappe.log_error()` for debugging
 4. **Handle all cases** - Always have an else/except for edge cases
 5. **Test thoroughly** - Test with various inputs before going live
+6. **Review security** - Check [Security Guide](../reference/security.md) before deploying
 
 ## Debugging
 

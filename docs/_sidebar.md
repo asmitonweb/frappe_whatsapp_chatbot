@@ -28,4 +28,8 @@
 - Reference
   - [DocTypes](reference/doctypes.md)
   - [Hooks & API](reference/api.md)
+  - [Security](reference/security.md)
   - [Troubleshooting](reference/troubleshooting.md)
+
+- Deployment
+  - [Production Guide](deployment.md)
